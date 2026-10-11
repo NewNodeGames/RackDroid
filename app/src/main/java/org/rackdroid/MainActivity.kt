@@ -172,12 +172,13 @@ class MainActivity : NativeActivity() {
 		hideSystemBars()
 		jlog("RackDroid ${packageManager.getPackageInfo(packageName, 0).versionName} starting")
 
-		val missing = arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS)
+		// The microphone is not asked for here: only when a patch takes sound
+		// from the device (showEngineNoticeFromNative, 6).
+		val missing = arrayOf(Manifest.permission.POST_NOTIFICATIONS)
 			.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
 		if (missing.isNotEmpty()) {
-			// No callback handling needed: audio_oboe reopens streams lazily
-			// (output-only until mic granted); the foreground service runs
-			// with or without a visible notification.
+			// No callback handling needed: the foreground service runs with
+			// or without a visible notification.
 			requestPermissions(missing.toTypedArray(), 1)
 		}
 
@@ -2099,6 +2100,17 @@ class MainActivity : NativeActivity() {
 			uiHandler.post { runCatching { showMeasuring(kind == 4) } }
 			return
 		}
+		// 6: a cable now takes sound from the device and the microphone would
+		// not open. This is the one moment the permission is asked for.
+		if (kind == 6) {
+			uiHandler.post {
+				if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+					jlog("audio input wanted: asking for the microphone")
+					requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 3)
+				}
+			}
+			return
+		}
 		val res = when (kind) {
 			1 -> R.string.engine_thermal_throttled
 			2 -> R.string.engine_cpu_contended
@@ -2869,6 +2881,7 @@ class MainActivity : NativeActivity() {
 	private external fun nativeHasAudioOutput(): Boolean
 	private external fun nativeEngineLoad(): Int
 	private external fun nativeAudioFocusChanged(change: Int)
+	private external fun nativeAudioInputGranted()
 	private external fun nativeRecordStop()
 	private external fun nativeHistoryAction(action: Int)
 	private external fun nativeSetLockMode(mode: Int)
@@ -3048,6 +3061,11 @@ class MainActivity : NativeActivity() {
 		if (requestCode == 2 && grantResults.isNotEmpty()
 				&& grantResults.all { it == PackageManager.PERMISSION_GRANTED })
 			showBleMidiScanner()
+		if (requestCode == 3 && grantResults.isNotEmpty()) {
+			val granted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+			jlog("microphone permission " + if (granted) "granted" else "refused: the patch plays without the device's input")
+			if (granted) runCatching { nativeAudioInputGranted() }
+		}
 	}
 
 	private external fun nativeMidiDeviceAdded(id: Int, name: String, device: MidiDevice, inputPorts: Int, outputPorts: Int)

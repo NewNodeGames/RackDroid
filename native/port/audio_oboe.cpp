@@ -244,6 +244,20 @@ bool audioFocusDisturbed() {
 		|| rack::system::getTime() - g_focusChangedAt.load(std::memory_order_relaxed) < 5.0;
 }
 
+/** The microphone is opened only while the patch takes sound from the device:
+a cable on one of an Audio module's outputs (audioSetInputWanted, asked by the
+render thread). It used to be opened with every output stream, and Android's
+indicator was lit for as long as the app played, whatever the patch -- "why is
+the microphone always on?" was a fair question from the first users. */
+static std::atomic<bool> g_inputWanted{false};
+/** Java says the permission has just been granted: worth trying again. */
+static std::atomic<bool> g_inputRetry{false};
+
+extern "C" JNIEXPORT void JNICALL
+Java_org_rackdroid_MainActivity_nativeAudioInputGranted(JNIEnv*, jobject) {
+	g_inputRetry.store(true, std::memory_order_relaxed);
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_org_rackdroid_MainActivity_nativeAudioFocusChanged(JNIEnv*, jobject, jint change) {
 	// AudioManager.AUDIOFOCUS_GAIN and its variants are positive, every loss
@@ -998,6 +1012,16 @@ static void rememberBlockSize(int bs) {
 struct OboeDevice : rack::audio::Device, oboe::AudioStreamDataCallback, oboe::AudioStreamErrorCallback {
 	std::shared_ptr<oboe::AudioStream> outputStream;
 	std::shared_ptr<oboe::AudioStream> inputStream;
+	/** What the callback reads from: inputStream once it is started, NULL
+	before it is opened and again before it is closed. The input comes and
+	goes with a cable while the output keeps playing, and the callback takes
+	no lock. */
+	std::atomic<oboe::AudioStream*> inputLive{NULL};
+	/** How many inputs the callback in progress has: decided once per callback,
+	so that the Audio module is never told "two" beside a NULL buffer. */
+	std::atomic<int> liveInputs{0};
+	/** Counts callbacks, for closeInput to know the last reader has gone. */
+	std::atomic<uint32_t> callbackSeq{0};
 	float sampleRate = DEFAULT_SAMPLE_RATE;
 	int blockSize = rememberedBlockSize();
 	std::vector<float> inputBuffer;
@@ -1056,6 +1080,57 @@ struct OboeDevice : rack::audio::Device, oboe::AudioStreamDataCallback, oboe::Au
 	misaligned with the device's burst, naming the size to use instead. */
 	int realignTo = 0;
 
+	/** Opens the input stream beside an open output. streamMutex is held. */
+	bool openInputHeld() {
+		if (inputStream)
+			return true;
+		if (!outputStream)
+			return false;
+		oboe::AudioStreamBuilder inBuilder;
+		inBuilder.setDirection(oboe::Direction::Input)
+			->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+			->setFormat(oboe::AudioFormat::Float)
+			->setChannelCount(NUM_INPUTS)
+			->setSampleRate(outputStream->getSampleRate());
+		oboe::Result result = inBuilder.openStream(inputStream);
+		if (result != oboe::Result::OK) {
+			WARN("Oboe: no input stream (%s), running output-only", oboe::convertToText(result));
+			inputStream.reset();
+			return false;
+		}
+		return true;
+	}
+
+	/** The input alone, while the output goes on playing: a cable plugged into
+	or pulled from an Audio module's outputs. False if it was wanted and would
+	not open, which without the permission is the usual reason. */
+	bool setInputOpen(bool open) {
+		std::lock_guard<std::mutex> lock(streamMutex);
+		if (open) {
+			if (inputStream)
+				return true;
+			if (!openInputHeld())
+				return false;
+			inputStream->requestStart();
+			inputLive.store(inputStream.get(), std::memory_order_release);
+			AUDIO_WARN("Oboe: input stream opened (a cable takes sound from the device)");
+			return true;
+		}
+		if (!inputStream)
+			return true;
+		inputLive.store(NULL, std::memory_order_release);
+		// The callback in progress may still be reading it: two more callbacks
+		// and nobody is. Bounded, for a stream that has stopped calling back.
+		uint32_t seen = callbackSeq.load(std::memory_order_acquire);
+		for (int i = 0; i < 100 && callbackSeq.load(std::memory_order_acquire) - seen < 2; i++)
+			usleep(1000);
+		inputStream->requestStop();
+		inputStream->close();
+		inputStream.reset();
+		AUDIO_WARN("Oboe: input stream closed (nothing takes sound from the device)");
+		return true;
+	}
+
 	void openStreamsLocked(const char* why) {
 		double t0 = rack::system::getTime();
 		std::lock_guard<std::mutex> lock(streamMutex);
@@ -1100,18 +1175,8 @@ struct OboeDevice : rack::audio::Device, oboe::AudioStreamDataCallback, oboe::Au
 		if (alignToBurst(blockSize, g_framesPerBurst) != callbackFrames)
 			realignTo = alignToBurst(blockSize, g_framesPerBurst);
 
-		oboe::AudioStreamBuilder inBuilder;
-		inBuilder.setDirection(oboe::Direction::Input)
-			->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-			->setFormat(oboe::AudioFormat::Float)
-			->setChannelCount(NUM_INPUTS)
-			->setSampleRate(outputStream->getSampleRate());
-
-		result = inBuilder.openStream(inputStream);
-		if (result != oboe::Result::OK) {
-			WARN("Oboe: no input stream (%s), running output-only", oboe::convertToText(result));
-			inputStream.reset();
-		}
+		if (g_inputWanted.load(std::memory_order_relaxed))
+			openInputHeld();
 
 		inputBuffer.resize(outputStream->getBufferCapacityInFrames() * NUM_INPUTS);
 
@@ -1122,8 +1187,10 @@ struct OboeDevice : rack::audio::Device, oboe::AudioStreamDataCallback, oboe::Au
 			outputStream->setBufferSizeInFrames(callbackFloor);
 		lastXRuns = 0;
 
-		if (inputStream)
+		if (inputStream) {
 			inputStream->requestStart();
+			inputLive.store(inputStream.get(), std::memory_order_release);
+		}
 		outputStream->requestStart();
 		g_lastStreamOpen = rack::system::getTime();
 		// blockSize belongs in here: it is the one number in this line the app
@@ -1219,6 +1286,8 @@ struct OboeDevice : rack::audio::Device, oboe::AudioStreamDataCallback, oboe::Au
 			outputStream.reset();
 			onStopStream();
 		}
+		inputLive.store(NULL, std::memory_order_release);
+		liveInputs.store(0, std::memory_order_relaxed);
 		if (inputStream) {
 			// requestStop(), not stop(): stop() waits for the stream to report
 			// Stopped and this one never does, so it burned the full 2 s
@@ -1240,7 +1309,7 @@ struct OboeDevice : rack::audio::Device, oboe::AudioStreamDataCallback, oboe::Au
 		return "Default";
 	}
 	int getNumInputs() override {
-		return inputStream ? NUM_INPUTS : 0;
+		return liveInputs.load(std::memory_order_relaxed);
 	}
 	int getNumOutputs() override {
 		return NUM_OUTPUTS;
@@ -1493,11 +1562,14 @@ struct OboeDevice : rack::audio::Device, oboe::AudioStreamDataCallback, oboe::Au
 		int phaseStart = windowPhase();
 
 		const float* input = NULL;
-		if (inputStream) {
+		callbackSeq.fetch_add(1, std::memory_order_release);
+		oboe::AudioStream* in = inputLive.load(std::memory_order_acquire);
+		liveInputs.store(in ? NUM_INPUTS : 0, std::memory_order_relaxed);
+		if (in) {
 			if ((int) inputBuffer.size() < numFrames * NUM_INPUTS)
 				inputBuffer.resize(numFrames * NUM_INPUTS);
 			// Non-blocking read; on underrun the missing frames stay zeroed.
-			auto readResult = inputStream->read(inputBuffer.data(), numFrames, 0);
+			auto readResult = in->read(inputBuffer.data(), numFrames, 0);
 			int framesRead = readResult ? readResult.value() : 0;
 			if (framesRead < numFrames) {
 				std::fill(inputBuffer.begin() + framesRead * NUM_INPUTS,
@@ -1735,6 +1807,19 @@ void audioApplyBlockChoice() {
 		g_driver->device->setBlockSize(choice);
 	else if (choice == 0 && was > 0 && autoSizeBeforeFix > 0)
 		audioSetBlockSize(autoSizeBeforeFix);
+}
+
+
+bool audioSetInputWanted(bool wanted) {
+	g_inputWanted.store(wanted, std::memory_order_relaxed);
+	if (!g_driver || !g_driver->device)
+		return !wanted;
+	return g_driver->device->setInputOpen(wanted);
+}
+
+
+bool audioInputRetryTake() {
+	return g_inputRetry.exchange(false, std::memory_order_relaxed);
 }
 
 

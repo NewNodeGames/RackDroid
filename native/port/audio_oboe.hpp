@@ -180,6 +180,12 @@ false (no-op) if no device is open. */
 /** `ladderRaise`: the overload ladder buying headroom. Such a size is not
 remembered for the next launch until stepping back down has been tried and has
 failed (see g_raisedFrom in audio_oboe.cpp). */
+/** The microphone is open only while this is true: asked by the render thread
+when a cable is on an Audio module's output, or the last one is gone. Returns
+false when the input was wanted and would not open (no permission, usually). */
+bool audioSetInputWanted(bool wanted);
+/** True once after Java reports the microphone permission granted. */
+bool audioInputRetryTake();
 bool audioSetBlockSize(int blockSize, bool ladderRaise = false);
 
 /** Counts audio ports arriving. A change means a patch has been loaded. */

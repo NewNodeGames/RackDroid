@@ -1234,6 +1234,41 @@ A024 with a heavy patch) or waiting for callbacks to come in on time (ten on a
 hot OnePlus 8T, with no measurement at all), so it is the silence itself that
 is watched, not either cause. Under a second nothing is said: a light patch is
 through before a card could be read. */
+/** Does the patch take sound from the device? A cable on any output of one of
+Core's Audio modules. Looked at four times a second, on the render thread; the
+audio driver opens the microphone on a yes and closes it on a no, and Java is
+asked for the permission only when it turns out to be missing (notice 6). */
+static void checkAudioInput() {
+	static double last = 0.0;
+	static bool wanted = false, open = false, asked = false;
+	double now = rack::system::getTime();
+	if (now - last < 0.25)
+		return;
+	last = now;
+	if (!APP || !APP->engine)
+		return;
+	bool want = false;
+	for (int64_t id : APP->engine->getModuleIds()) {
+		rack::engine::Module* m = APP->engine->getModule(id);
+		if (!m || !m->model || !m->model->plugin || m->model->plugin->slug != "Core"
+				|| m->model->slug.rfind("AudioInterface", 0) != 0)
+			continue;
+		for (rack::engine::Output& o : m->outputs)
+			want = want || o.isConnected();
+	}
+	bool retry = rackdroid::audioInputRetryTake();
+	if (want == wanted && !(want && !open && retry))
+		return;
+	if (want != wanted)
+		asked = false;
+	wanted = want;
+	open = rackdroid::audioSetInputWanted(want) && want;
+	if (want && !open && !asked) {
+		asked = true;
+		rackdroid::showEngineNotice(6);
+	}
+}
+
 static void reportSilence() {
 	static bool said = false;
 	bool silent = rackdroid::audioSilentMs() >= 1000;
@@ -3597,6 +3632,8 @@ void android_main(android_app* app) {
 				rackdroid::audioReleaseIdleDevice();
 				rackdroid::audioReportUnderruns();
 				reportSilence();
+				if (rd.patchLaunched)
+					checkAudioInput();
 				rackdroid::audioReportLatency();
 				// Only once the engine has stopped thrashing about: the
 				// buffer means nothing while the patch is still loading.
