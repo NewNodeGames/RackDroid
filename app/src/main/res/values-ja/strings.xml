@@ -78,6 +78,7 @@
 	<string name="toast_saved_to">Documents/RackDroid/%1$s に保存しました</string>
 	<string name="toast_patch_imported">パッチを読み込みました: %1$s（ファイル ▸ 開く）</string>
 	<string name="toast_selection_imported">選択範囲を読み込みました: %1$s</string>
+	<string name="pack_update_on_restart">%1$s を更新しました。新しいバージョンを使うには RackDroid を再起動してください</string>
 	<string name="toast_import_failed">読み込みに失敗しました: %1$s</string>
 	<string name="toast_no_patches">%1$s にパッチがありません</string>
 	<string name="toast_no_files">%2$s に .%1$s ファイルがありません</string>

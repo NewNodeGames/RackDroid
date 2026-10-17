@@ -1604,15 +1604,21 @@ class MainActivity : NativeActivity() {
 		// Copy off the UI thread (a pack can be 10+ MB); load back on it, so the
 		// native registration path matches the startup loader exactly.
 		Thread {
+			// Slugs already installed: their new files wait for the next start
+			// (ModuleInstaller.importNewPacks), and the user is told so.
+			val updates = ArrayList<String>()
 			val copied = uris.count { uri ->
 				runCatching {
 					val name = safeIncomingName(queryDisplayName(uri), "pack.rdmod", listOf(".rdmod", ".zip"))
 					val dest = uniqueDestination(ModuleInstaller.modulesDir(this), name)
 					copyUriAtomically(uri, dest, MAX_MODULE_PACK_BYTES)
+					ModuleInstaller.slugOf(dest)?.let { if (ModuleInstaller.isInstalled(this, it)) updates.add(it) }
 					true
 				}.getOrDefault(false)
 			}
 			uiHandler.post {
+				if (updates.isNotEmpty())
+					Toast.makeText(this, getString(R.string.pack_update_on_restart, updates.joinToString(", ")), Toast.LENGTH_LONG).show()
 				if (copied > 0) {
 					// loadUserPlugins imports+loads the new packs and toasts the
 					// count; already-installed slugs are skipped harmlessly.
@@ -2564,7 +2570,11 @@ class MainActivity : NativeActivity() {
 					super.onTouchEvent(ev)
 					return true
 				}
-				android.view.MotionEvent.ACTION_MOVE -> if (dragging || scrollY == 0) {
+				// Only a pull DOWN from the top is the dismiss gesture. Any move
+				// at the top used to count, upward ones too, and swallowed them:
+				// a menu taller than the screen could never be scrolled, and
+				// its last rows stayed out of reach (Strip's menu on an A52s).
+				android.view.MotionEvent.ACTION_MOVE -> if (dragging || (scrollY == 0 && ev.rawY - startRawY > slop)) {
 					dragging = true
 					translationY = (ev.rawY - startRawY).coerceAtLeast(0f)
 					return true
@@ -2644,6 +2654,19 @@ class MainActivity : NativeActivity() {
 		val scroll = SwipeDismissScrollView({ dlg.dismiss() }).apply {
 			addView(col)
 			isVerticalScrollBarEnabled = false
+			// The sheet runs under the navigation bar (the app is edge to
+			// edge): without this the last row of a long menu stayed behind
+			// it and could not be scrolled into view (Strip's menu on a
+			// Galaxy A52s).
+			setOnApplyWindowInsetsListener { v, insets ->
+				val bottom = if (android.os.Build.VERSION.SDK_INT >= 30)
+					insets.getInsets(android.view.WindowInsets.Type.systemBars()
+						or android.view.WindowInsets.Type.displayCutout()).bottom
+				else @Suppress("DEPRECATION") insets.systemWindowInsetBottom
+				v.setPadding(0, 0, 0, bottom)
+				insets
+			}
+			clipToPadding = false
 		}
 		dlg.setView(scroll)
 		trackTopWindow(dlg)

@@ -78,6 +78,7 @@
 	<string name="toast_saved_to">已保存到 Documents/RackDroid/%1$s</string>
 	<string name="toast_patch_imported">已导入工程：%1$s（文件 ▸ 打开）</string>
 	<string name="toast_selection_imported">已导入选区：%1$s</string>
+	<string name="pack_update_on_restart">%1$s 已更新：重启 RackDroid 以使用新版本</string>
 	<string name="toast_import_failed">导入失败：%1$s</string>
 	<string name="toast_no_patches">%1$s 中没有工程</string>
 	<string name="toast_no_files">%2$s 中没有 .%1$s 文件</string>

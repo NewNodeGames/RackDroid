@@ -68,12 +68,13 @@ object ModuleInstaller {
 		runCatching { writeReadme(activity) }
 			.onFailure { jlog("could not write Modules/README.txt: ${it.message}") }
 		val tImport = android.os.SystemClock.uptimeMillis()
-		importNewPacks(activity)
+		importNewPacks(activity, replaceOlder = !librariesLoaded)
 		val tLoad = android.os.SystemClock.uptimeMillis()
 		var loaded = 0
 		installedDir(activity).listFiles { f -> f.isDirectory }?.forEach { dir ->
 			if (loadInstalled(activity, dir)) loaded++
 		}
+		librariesLoaded = true
 		jlog("loadUserPlugins: readme ${tImport - tReadme} ms, import ${tLoad - tImport} ms, " +
 			"load ${android.os.SystemClock.uptimeMillis() - tLoad} ms ($loaded packs)")
 		if (loaded > 0)
@@ -84,6 +85,16 @@ object ModuleInstaller {
 			}
 		return loaded
 	}
+
+	/** Set once the first load has run: from then on a pack's library may be
+	 * in the process, and its files must not be replaced under it. */
+	@Volatile private var librariesLoaded = false
+
+	/** The slug a pack file declares, or null if it is not a pack. */
+	fun slugOf(pack: File): String? = runCatching { peekSlug(pack) }.getOrNull()
+
+	fun isInstalled(activity: Activity, slug: String): Boolean =
+		isValidSlug(slug) && File(installedDir(activity), slug).isDirectory
 
 	/** An installed pack: its plugin slug (== the extracted dir name) and the
 	 * on-disk size of its extracted copy, for the manager UI. */
@@ -180,9 +191,10 @@ object ModuleInstaller {
 						val dest = File(root, name).canonicalFile
 						if (dest.parentFile != root)
 							throw IllegalArgumentException("bundle entry escapes the drop folder")
-						// Never overwrite: a pack already sitting there is
-						// either installed or something the user put there.
-						if (dest.exists()) continue
+						// A pack already sitting there stays, unless the
+						// bundle is newer: that is how a release's updated
+						// packs reach a phone that has the old ones.
+						if (dest.exists() && dest.lastModified() >= bundle.lastModified()) continue
 						val remaining = MAX_UNPACKED_BYTES - totalBytes
 						if (remaining <= 0) throw IllegalArgumentException("bundle is too large")
 						val tmp = File(root, "$name.part")
@@ -246,7 +258,11 @@ object ModuleInstaller {
 
 	private fun packKey(f: File) = "${f.name}|${f.length()}|${f.lastModified()}"
 
-	private fun importNewPacks(activity: Activity) {
+	/** replaceOlder: a pack file newer than the installed copy of its slug
+	 * replaces it. Only before any library is loaded (startup): a library
+	 * rewritten while the process has it mapped took the app down with
+	 * SIGILL on a TB-X306X. */
+	private fun importNewPacks(activity: Activity, replaceOlder: Boolean) {
 		// Turn any bundle into loose packs first, so the scan below sees them.
 		val tExpand = android.os.SystemClock.uptimeMillis()
 		expandBundles(activity)
@@ -272,18 +288,38 @@ object ModuleInstaller {
 				val slug = slugIndex[key] ?: peekSlug(pack) ?: continue
 				seen[key] = slug
 				val dest = destinationForSlug(activity, slug)
-				if (dest.exists()) continue // already installed; drop a new slug to add
+				// Installed already: kept, unless this file is newer than the
+				// installed copy and nothing is loaded yet. Without this an
+				// updated pack never reached anyone who had the old one.
+				val update = dest.exists()
+				if (update && (!replaceOlder || pack.lastModified() <= dest.lastModified())) continue
 				tmp = File(dest.parentFile, "$slug.tmp")
 				tmp.deleteRecursively()
 				unzip(pack, tmp, slug)
+				if (update) {
+					val old = File(dest.parentFile, "$slug.old")
+					old.deleteRecursively()
+					if (!dest.renameTo(old))
+						throw IllegalStateException("could not set the old copy aside")
+					old.deleteRecursively()
+				}
 				if (!tmp.renameTo(dest))
 					throw IllegalStateException("could not finalize extracted pack")
-				jlog("installed module pack $slug from ${pack.name}")
+				jlog((if (update) "updated" else "installed") + " module pack $slug from ${pack.name}")
 			} catch (t: Throwable) {
 				jlog("module pack ${pack.name} import failed: ${t.message}")
 				tmp?.deleteRecursively()
 			}
 		}
+		// One source file per slug: the older copies an update leaves behind
+		// ("Befaco (1).rdmod" beside "Befaco.rdmod") are only disk space.
+		packs.filter { seen.containsKey(packKey(it)) }
+			.groupBy { seen[packKey(it)] }
+			.values.forEach { same ->
+				same.sortedByDescending { it.lastModified() }.drop(1).forEach { older ->
+					if (older.delete()) jlog("removed older copy ${older.name}")
+				}
+			}
 		// Rewritten from what this pass actually saw, so packs the user has
 		// since deleted drop out instead of accumulating forever.
 		if (seen != slugIndex)

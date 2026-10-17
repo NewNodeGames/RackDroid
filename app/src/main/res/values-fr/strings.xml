@@ -78,6 +78,7 @@
 	<string name="toast_saved_to">Enregistré dans Documents/RackDroid/%1$s</string>
 	<string name="toast_patch_imported">Patch importé : %1$s (Fichier ▸ Ouvrir)</string>
 	<string name="toast_selection_imported">Sélection importée : %1$s</string>
+	<string name="pack_update_on_restart">%1$s mis à jour : redémarre RackDroid pour utiliser la nouvelle version</string>
 	<string name="toast_import_failed">Échec de l\'import : %1$s</string>
 	<string name="toast_no_patches">Aucun patch dans %1$s</string>
 	<string name="toast_no_files">Aucun fichier .%1$s dans %2$s</string>
