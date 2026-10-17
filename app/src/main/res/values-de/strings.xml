@@ -77,6 +77,7 @@
 	<string name="toast_recording_no_audio">Nichts aufzunehmen: Dieser Patch hat kein Audio-Modul</string>
 	<string name="toast_saved_to">Gespeichert unter Documents/RackDroid/%1$s</string>
 	<string name="toast_patch_imported">Patch importiert: %1$s (Datei ▸ Öffnen)</string>
+	<string name="toast_selection_imported">Auswahl importiert: %1$s</string>
 	<string name="toast_import_failed">Import fehlgeschlagen: %1$s</string>
 	<string name="toast_no_patches">Keine Patches in %1$s</string>
 	<string name="toast_no_files">Keine .%1$s-Dateien in %2$s</string>

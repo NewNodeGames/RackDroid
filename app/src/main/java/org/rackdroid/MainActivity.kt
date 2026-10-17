@@ -1191,21 +1191,31 @@ class MainActivity : NativeActivity() {
 		handleImportIntent(intent)
 	}
 
-	/** Copies a .vcv opened/shared from another app into the patches dir. */
+	/** A file opened or shared from another app: a module pack is installed,
+	 * a selection goes with the selections, anything else is taken for a patch.
+	 * It used to be taken for a patch whatever it was: a pack opened from a file
+	 * manager landed among the patches as "x.rdmod.vcv" and was never installed. */
 	private fun handleImportIntent(intent: Intent?) {
 		val uri: Uri = when (intent?.action) {
 			Intent.ACTION_VIEW -> intent.data
 			Intent.ACTION_SEND -> IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)
 			else -> null
 		} ?: return
+		val shown = runCatching { queryDisplayName(uri) }.getOrNull().orEmpty().lowercase()
+		if (shown.endsWith(".rdmod") || shown.endsWith(".zip")) {
+			installPackUris(listOf(uri))
+			return
+		}
 		try {
-			val name = safeIncomingName(queryDisplayName(uri), "imported.vcv", listOf(".vcv"))
-			val dir = File(filesDir, "user/patches")
+			val selection = shown.endsWith(".vcvs")
+			val name = if (selection) safeIncomingName(queryDisplayName(uri), "imported.vcvs", listOf(".vcvs"))
+				else safeIncomingName(queryDisplayName(uri), "imported.vcv", listOf(".vcv"))
+			val dir = File(filesDir, if (selection) "user/selections" else "user/patches")
 			dir.mkdirs()
 			val dest = uniqueDestination(dir, name)
 			copyUriAtomically(uri, dest, MAX_PATCH_IMPORT_BYTES)
 			uiHandler.post {
-				Toast.makeText(this, getString(R.string.toast_patch_imported, dest.name), Toast.LENGTH_LONG).show()
+				Toast.makeText(this, getString(if (selection) R.string.toast_selection_imported else R.string.toast_patch_imported, dest.name), Toast.LENGTH_LONG).show()
 			}
 		} catch (e: Exception) {
 			uiHandler.post {
@@ -1573,6 +1583,23 @@ class MainActivity : NativeActivity() {
 		data.clipData?.let { clip -> for (i in 0 until clip.itemCount) uris.add(clip.getItemAt(i).uri) }
 		data.data?.let { uris.add(it) }
 		if (uris.isEmpty()) return
+		installPackUris(uris)
+	}
+
+	/** Packs that arrived before startup had loaded the installed ones. */
+	private val packsWaiting = ArrayList<Uri>()
+	private var packsLoadedAtStartup = false
+
+	/** Copies packs into the modules dir and loads them, as at startup. Not
+	 * while startup is still loading the packs already installed: a pack
+	 * opened from a file manager arrives with the launch, and two loaders at
+	 * once had one writing a library the other was opening (SIGILL in
+	 * libplugin_packone on a TB-X306X). */
+	private fun installPackUris(uris: List<Uri>) {
+		if (!packsLoadedAtStartup) {
+			packsWaiting.addAll(uris)
+			return
+		}
 		Toast.makeText(this, getString(R.string.installing_modules), Toast.LENGTH_SHORT).show()
 		// Copy off the UI thread (a pack can be 10+ MB); load back on it, so the
 		// native registration path matches the startup loader exactly.
@@ -2861,6 +2888,12 @@ class MainActivity : NativeActivity() {
 	 * it. Slow device or slow patch and the palette came up empty. */
 	fun patchReadyFromNative() {
 		uiHandler.post {
+			packsLoadedAtStartup = true
+			if (packsWaiting.isNotEmpty()) {
+				val waiting = ArrayList(packsWaiting)
+				packsWaiting.clear()
+				installPackUris(waiting)
+			}
 			markStartupReady()
 			runCatching { nativeBrowserRequestBuild() }
 			runCatching { modulePalette.show() }

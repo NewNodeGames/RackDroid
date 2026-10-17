@@ -77,6 +77,7 @@
 	<string name="toast_recording_no_audio">没有可录制的内容:此工程没有 Audio 模块</string>
 	<string name="toast_saved_to">已保存到 Documents/RackDroid/%1$s</string>
 	<string name="toast_patch_imported">已导入工程：%1$s（文件 ▸ 打开）</string>
+	<string name="toast_selection_imported">已导入选区：%1$s</string>
 	<string name="toast_import_failed">导入失败：%1$s</string>
 	<string name="toast_no_patches">%1$s 中没有工程</string>
 	<string name="toast_no_files">%2$s 中没有 .%1$s 文件</string>
