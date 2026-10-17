@@ -1,9 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48.1875px" height="48.19141px" viewBox="0 0 48.1875 48.19141">
-<defs><linearGradient id="ring" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B6673"/><stop offset="1" stop-color="#3B362D"/></linearGradient><radialGradient id="body" cx="0.4" cy="0.35" r="0.75"><stop offset="0" stop-color="#3B434E"/><stop offset="1" stop-color="#2C2820"/></radialGradient></defs>
-<circle cx="24.09375" cy="25.43" r="22.16625" fill="#000000" fill-opacity="0.35"/>
-<circle cx="24.09375" cy="24.095705" r="22.16625" fill="url(#ring)"/>
-<circle cx="24.09375" cy="24.095705" r="18.8413125" fill="url(#body)"/>
-<circle cx="24.09375" cy="24.095705" r="18.8413125" fill="none" stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="1.11"/>
-<rect x="21.88" y="5.03" width="4.43" height="12.41" rx="2.22" fill="#7FC4FF" fill-opacity="0.28"/>
-<rect x="22.87" y="5.92" width="2.44" height="11.08" rx="1.22" fill="#7FC4FF"/>
+<defs><linearGradient id="bbez" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B6673"/><stop offset="1" stop-color="#3B362D"/></linearGradient><linearGradient id="bface" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B434E"/><stop offset="1" stop-color="#2E2922"/></linearGradient></defs>
+<rect x="2.4093750000000007" y="2.4113299999999995" width="43.36875" height="43.36875" rx="7.589531249999999" fill="url(#bbez)"/>
+<rect x="6.312562500000002" y="6.314517500000001" width="35.562374999999996" height="35.562374999999996" rx="6.071625" fill="url(#bface)"/>
+<rect x="10.65" y="9.35" width="26.89" height="6.51" rx="3.25" fill="#FFFFFF" fill-opacity="0.06"/>
 </svg>

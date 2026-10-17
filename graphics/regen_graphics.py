@@ -427,8 +427,57 @@ def classify_component(name):
     return ("knob", name.endswith("_bg"), name.endswith("_fg"), state)
 
 
+# What each component file really is, read from the plugin's own source:
+# the base class of the widget that loads it (scan_sources). The name alone
+# was wrong often enough to be seen -- Befaco's Bananut jacks came out as
+# knobs, Bidoo's buttons and Core's bezels too -- because a name without a
+# known word falls back to "knob".
+USED_AS = {}
+
+
+def scan_sources(paths):
+    """{svg stem: set of kinds} for every SVG a widget struct loads."""
+    def kind_of(base):
+        b = base.lower()
+        for word, kind in (("port", "port"), ("knob", "knob"), ("trimpot", "knob"),
+                           ("slider", "slider"), ("switch", "switch"),
+                           ("button", "button"), ("light", "light"), ("screw", "screw")):
+            if word in b:
+                return kind
+        return None
+    files = []
+    for p in paths:
+        if os.path.isfile(p):
+            files.append(p)
+        for cur, _dirs, fs in os.walk(p):
+            files += [os.path.join(cur, f) for f in fs if f.endswith((".cpp", ".hpp", ".h"))]
+    used = {}
+    for f in files:
+        with open(f, encoding="utf-8", errors="ignore") as fh:
+            t = fh.read()
+        for m in re.finditer(r'struct\s+\w+\s*:\s*([^{;]+)\{', t):
+            kind = kind_of(m.group(1))
+            if not kind:
+                continue
+            i, depth = m.end(), 1
+            while i < len(t) and depth:
+                depth += (t[i] == '{') - (t[i] == '}')
+                i += 1
+            for s in re.finditer(r'"([^"]+?)\.svg"', t[m.end():i]):
+                used.setdefault(os.path.basename(s.group(1)), set()).add(kind)
+    return used
+
+
 def gen_component(name, w, h):
     kind, is_bg, is_fg, state = classify_component(name)
+    used = USED_AS.get(name, set())
+    if used and kind not in used and kind != "rail":
+        if "port" in used:
+            kind, is_bg, is_fg = "port", False, False
+        elif "screw" in used:
+            kind = "screw"
+        elif kind == "knob" and used & {"switch", "button"}:
+            kind, is_bg, is_fg = "button", False, False
     if kind == "rail":
         return rail(w, h, dark="dark" in name.lower())
     if kind == "knob":
@@ -660,6 +709,12 @@ if __name__ == "__main__":
             copy_fonts(f"{src}/fonts", f"{dst}/fonts")
         if "Befaco/res" == src[-len("Befaco/res"):]:
             copy_fonts(f"{src}/fonts", f"{dst}/fonts")
+        # The plugin's source, to tell its components apart (USED_AS).
+        if "/Rack/res" in src:
+            USED_AS = scan_sources([f"{tp}/Rack/include", f"{tp}/Rack/src"])
+        else:
+            plugin_root = src.split("/res")[0]
+            USED_AS = scan_sources([f"{plugin_root}/src"])
         if mode == "panel-r":
             n = process_recursive(src, dst, mode)
         else:

@@ -57,6 +57,9 @@ if __name__ == "__main__":
             if not os.path.isdir(src):
                 print(f"skip (missing): {src}")
                 continue
+            # What each component really is, from the source (see R.USED_AS).
+            R.USED_AS = R.scan_sources([f"{TP}/Rack/include", f"{TP}/Rack/src"] if "/Rack/res" in src
+                                       else [src.split("/res")[0] + "/src"])
             total += R.process_dir(src, os.path.join(base, sub), mode)
         gen_drums(os.path.join(base, "drums-res"))
         total += len(D.PANELS)
