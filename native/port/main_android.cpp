@@ -1237,10 +1237,10 @@ through before a card could be read. */
 /** Does the patch take sound from the device? A cable on any output of one of
 Core's Audio modules. Looked at four times a second, on the render thread; the
 audio driver opens the microphone on a yes and closes it on a no, and Java is
-asked for the permission only when it turns out to be missing (notice 6). */
+told on every yes (notice 6) and asks for the permission if it is missing. */
 static void checkAudioInput() {
 	static double last = 0.0;
-	static bool wanted = false, open = false, asked = false;
+	static bool wanted = false, asked = false;
 	double now = rack::system::getTime();
 	if (now - last < 0.25)
 		return;
@@ -1257,13 +1257,25 @@ static void checkAudioInput() {
 			want = want || o.isConnected();
 	}
 	bool retry = rackdroid::audioInputRetryTake();
-	if (want == wanted && !(want && !open && retry))
+	if (want && retry) {
+		// Granted just now. Where the input had opened without it, it opened
+		// silenced (a Galaxy A52s on Android 16) and stays so: it is closed
+		// here and opened afresh on the next look, a quarter of a second
+		// later. Reopened at once, it recorded for 17 ms and stopped.
+		rackdroid::audioSetInputWanted(false);
+		wanted = false;
 		return;
-	if (want != wanted)
-		asked = false;
+	}
+	if (want == wanted)
+		return;
 	wanted = want;
-	open = rackdroid::audioSetInputWanted(want) && want;
-	if (want && !open && !asked) {
+	if (!want)
+		asked = false;
+	rackdroid::audioSetInputWanted(want);
+	// Java asks for the permission if it is missing, whether or not the
+	// stream opened: without it some Androids refuse the stream (a TB-X306X
+	// on 10) and others open it and give silence (a Galaxy A52s on 16).
+	if (want && !asked) {
 		asked = true;
 		rackdroid::showEngineNotice(6);
 	}
