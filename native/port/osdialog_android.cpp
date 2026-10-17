@@ -46,12 +46,27 @@ char* osdialog_prompt(osdialog_message_level level, const char* message, const c
 }
 
 char* osdialog_file(osdialog_file_action action, const char* path, const char* filename, osdialog_filters* filters) {
-	(void) filters;
 	if (action == OSDIALOG_OPEN_DIR)
 		return NULL; // No directory picker; not used by Rack core flows
+	// The extensions the caller asked for ("vcv", "vcvs", a module's own
+	// preset type...) and the first filter's name. They were ignored, and the
+	// Java side took every file for a patch: a selection saved as x.vcvs came
+	// out as x.vcvs.vcv.vcvs and was never listed again (issue #8).
+	std::string exts, kind;
+	for (osdialog_filters* f = filters; f; f = f->next) {
+		if (kind.empty() && f->name)
+			kind = f->name;
+		for (osdialog_filter_patterns* p = f->patterns; p; p = p->next) {
+			if (!p->pattern || !*p->pattern)
+				continue;
+			if (!exts.empty())
+				exts += ",";
+			exts += p->pattern;
+		}
+	}
 	std::string result;
 	bool save = (action == OSDIALOG_SAVE);
-	if (!rackdroid::dialogFile(save, path ? path : "", filename ? filename : "", result))
+	if (!rackdroid::dialogFile(save, path ? path : "", filename ? filename : "", exts, kind, result))
 		return NULL;
 	return strdup(result.c_str());
 }

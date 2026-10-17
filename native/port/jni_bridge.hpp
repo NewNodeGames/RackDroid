@@ -116,7 +116,10 @@ bool dialogPrompt(const std::string& title, const std::string& text, std::string
 /** Patch file picker. save=false lists *.vcv files in `dir` for opening;
 save=true asks for a filename (suggesting `filename`). Returns true and fills
 `path` (absolute) if confirmed. */
-bool dialogFile(bool save, const std::string& dir, const std::string& filename, std::string& path);
+/** exts: the extensions asked for, comma-separated and without dots ("vcvs");
+empty for any file. kind: the filter's name, for the dialog's title. */
+bool dialogFile(bool save, const std::string& dir, const std::string& filename,
+	const std::string& exts, const std::string& kind, std::string& path);
 
 /** Requests AUDIOFOCUS_GAIN once, held for the process's lifetime (never
 ducked or abandoned automatically -- see requestAudioFocusFromNative() in

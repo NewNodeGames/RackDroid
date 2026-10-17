@@ -79,6 +79,7 @@
 	<string name="toast_patch_imported">Patch importé : %1$s (Fichier ▸ Ouvrir)</string>
 	<string name="toast_import_failed">Échec de l\'import : %1$s</string>
 	<string name="toast_no_patches">Aucun patch dans %1$s</string>
+	<string name="toast_no_files">Aucun fichier .%1$s dans %2$s</string>
 	<string name="toast_midi_connected">MIDI connecté : %1$s</string>
 	<string name="toast_enable_bluetooth">Active d\'abord le Bluetooth</string>
 	<string name="toast_ble_scan_failed">Échec de la recherche BLE (%1$d)</string>

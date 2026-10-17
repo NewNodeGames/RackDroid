@@ -2324,17 +2324,24 @@ class MainActivity : NativeActivity() {
 		}
 	}
 
-	/** save=false: single-choice list of .vcv files in dir. save=true: filename prompt. */
-	fun dialogFileAsync(save: Boolean, dir: String, filename: String) {
+	/** save=false: single-choice list of the files in dir with one of the
+	 * extensions asked for. save=true: filename prompt, the first extension
+	 * added when the name has none of them. exts is comma-separated, without
+	 * dots, empty for any file; kind is the caller's filter name. Rack asks
+	 * for patches (vcv) and selections (vcvs), modules for their own types. */
+	fun dialogFileAsync(save: Boolean, dir: String, filename: String, exts: String, kind: String) {
+		val wanted = exts.split(',').map { it.trim().trimStart('.').lowercase() }.filter { it.isNotEmpty() && it != "*" }
+		val patches = wanted.isEmpty() || wanted == listOf("vcv")
+		fun fits(name: String) = wanted.isEmpty() || wanted.any { name.lowercase().endsWith(".$it") }
 		if (save) {
 			uiHandler.post {
 				val edit = EditText(this)
 				edit.inputType = InputType.TYPE_CLASS_TEXT
-				edit.setText(filename.ifEmpty { "patch.vcv" })
+				edit.setText(filename.ifEmpty { "patch." + (wanted.firstOrNull() ?: "vcv") })
 				edit.setSelectAllOnFocus(true)
 				var answered = false
 				AlertDialog.Builder(this)
-					.setTitle("Save patch")
+					.setTitle(if (patches) "Save patch" else kind.ifEmpty { "Save" })
 					.setView(edit)
 					.setPositiveButton(android.R.string.ok) { _, _ ->
 						answered = true
@@ -2342,7 +2349,7 @@ class MainActivity : NativeActivity() {
 						if (name.isEmpty()) {
 							nativeDialogString(null)
 						} else {
-							if (!name.endsWith(".vcv")) name += ".vcv"
+							if (!fits(name)) name += "." + wanted.first()
 							nativeDialogString(File(dir, name).absolutePath)
 						}
 					}
@@ -2356,11 +2363,16 @@ class MainActivity : NativeActivity() {
 			return
 		}
 
-		val files = File(dir).listFiles { f -> f.isFile && f.name.endsWith(".vcv") }
-			?.sortedBy { it.name } ?: emptyList()
+		// Also what the old dialog saved under the wrong name: it added ".vcv"
+		// to every name, so a module's "x.vcvss" became "x.vcvss.vcv".
+		val files = File(dir).listFiles { f ->
+			f.isFile && (fits(f.name) || wanted.any { f.name.lowercase().endsWith(".$it.vcv") })
+		}?.sortedBy { it.name } ?: emptyList()
 		if (files.isEmpty()) {
 			uiHandler.post {
-				android.widget.Toast.makeText(this, getString(R.string.toast_no_patches, dir), android.widget.Toast.LENGTH_SHORT).show()
+				val text = if (patches) getString(R.string.toast_no_patches, dir)
+					else getString(R.string.toast_no_files, wanted.first(), dir)
+				android.widget.Toast.makeText(this, text, android.widget.Toast.LENGTH_SHORT).show()
 			}
 			nativeDialogString(null)
 			return
@@ -2368,7 +2380,7 @@ class MainActivity : NativeActivity() {
 		uiHandler.post {
 			var answered = false
 			val dialog = AlertDialog.Builder(this)
-				.setTitle(R.string.open_patch_title)
+				.apply { if (patches) setTitle(R.string.open_patch_title) else setTitle(kind.ifEmpty { dir }) }
 				.setItems(files.map { it.name }.toTypedArray()) { _, which ->
 					answered = true; nativeDialogString(files[which].absolutePath)
 				}

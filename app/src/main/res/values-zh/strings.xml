@@ -79,6 +79,7 @@
 	<string name="toast_patch_imported">已导入工程：%1$s（文件 ▸ 打开）</string>
 	<string name="toast_import_failed">导入失败：%1$s</string>
 	<string name="toast_no_patches">%1$s 中没有工程</string>
+	<string name="toast_no_files">%2$s 中没有 .%1$s 文件</string>
 	<string name="toast_midi_connected">已连接 MIDI：%1$s</string>
 	<string name="toast_enable_bluetooth">请先打开蓝牙</string>
 	<string name="toast_ble_scan_failed">BLE 扫描失败（%1$d）</string>
