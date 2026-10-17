@@ -178,8 +178,12 @@ struct PanelLabelOverlay : widget::Widget {
 			darkInk = labelOverlayLightPanels && mw->model && mw->model->plugin &&
 				themedPlugins.count(mw->model->plugin->slug);
 			NVGcolor ink = darkInk ? nvgRGB(0x1C, 0x18, 0x13) : nvgRGB(0xED, 0xE6, 0xD8);
-			if (mw->model && mw->model->plugin &&
-					regenArtPlugins.count(mw->model->plugin->slug)) {
+			// Plugins with their own upstream art print every label on the
+			// panel already: drawn again, the text came out twice (issue #7,
+			// Autinn). Only the regenerated panels need any.
+			if (!mw->model || !mw->model->plugin || !regenArtPlugins.count(mw->model->plugin->slug))
+				continue;
+			{
 				math::Vec top = mw->getRelativeOffset(math::Vec(mw->box.size.x * 0.5f, 0), ref);
 				nvgFontSize(args.vg, 7.5f);
 				// Warm white: the label sits on the dark panel face just

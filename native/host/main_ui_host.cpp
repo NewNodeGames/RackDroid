@@ -382,8 +382,12 @@ int main(int argc, char* argv[]) {
 					math::Vec rackOrigin = APP->scene->rack->getAbsoluteOffset(math::Vec(0, 0));
 					widget->box.pos = math::Vec(0, 0).minus(rackOrigin);
 					APP->scene->rack->addModule(widget); // finds getModules(), unlike a bare scene->addChild
-					APP->window->step(); // also drives the label overlay's own step
-					APP->window->step();
+					// Enough frames for every framebuffer to be drawn: the port
+					// lets each frame rebuild only so many (drawTime in
+					// window_android.cpp), and with two a big panel like SEQ 3
+					// came out with most of its knobs and jacks missing.
+					for (int i = 0; i < 40; i++)
+						APP->window->step(); // also drives the label overlay's own step
 
 					math::Vec origin = widget->getAbsoluteOffset(math::Vec(0, 0));
 					int x0 = (int) std::round(origin.x * pixelRatio);
