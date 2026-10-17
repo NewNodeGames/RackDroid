@@ -382,12 +382,15 @@ int main(int argc, char* argv[]) {
 					math::Vec rackOrigin = APP->scene->rack->getAbsoluteOffset(math::Vec(0, 0));
 					widget->box.pos = math::Vec(0, 0).minus(rackOrigin);
 					APP->scene->rack->addModule(widget); // finds getModules(), unlike a bare scene->addChild
-					// Enough frames for every framebuffer to be drawn: the port
-					// lets each frame rebuild only so many (drawTime in
-					// window_android.cpp), and with two a big panel like SEQ 3
-					// came out with most of its knobs and jacks missing.
-					for (int i = 0; i < 40; i++)
+					// Until no framebuffer is left to draw: the port lets each
+					// frame rebuild only so many (drawTime in window_android.cpp),
+					// so a fixed count of frames left big panels half drawn --
+					// SEQ 3 with two, Bogaudio's MATRIX88 without its jacks even
+					// with forty. fbCount() is how many the last frame drew.
+					for (int i = 0, idle = 0; i < 300 && idle < 3; i++) {
 						APP->window->step(); // also drives the label overlay's own step
+						idle = (APP->window->fbCount() == 0) ? idle + 1 : 0;
+					}
 
 					math::Vec origin = widget->getAbsoluteOffset(math::Vec(0, 0));
 					int x0 = (int) std::round(origin.x * pixelRatio);
