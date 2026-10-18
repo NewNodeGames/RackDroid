@@ -25,8 +25,10 @@ RackDroid is a modular synthesizer that runs entirely on your device.
   analytics involved. You can decline at any time and the app stays offline.
 - **Microphone.** The RECORD_AUDIO permission is used exclusively to route
   live audio input into the synthesizer's AUDIO module (e.g. to process an
-  external instrument). Audio is processed in real time on the device and is
-  never transmitted. You can deny this permission; the app then runs
+  external instrument). It is asked for, and the microphone is opened, only
+  while a cable takes sound from the device on an AUDIO module; it is closed
+  when that cable is removed. Audio is processed in real time on the device
+  and is never transmitted. You can deny this permission; the app then runs
   output-only.
 - **Bluetooth.** Bluetooth permissions are used exclusively to connect
   Bluetooth LE MIDI keyboards/controllers you choose from the in-app scanner.
@@ -61,7 +63,9 @@ dispositivo.
   rifiutare in qualsiasi momento e l'app resta offline.
 - **Microfono.** Il permesso RECORD_AUDIO serve esclusivamente a portare
   l'ingresso audio nel modulo AUDIO del sintetizzatore (es. per processare
-  uno strumento esterno). L'audio è elaborato in tempo reale sul dispositivo
+  uno strumento esterno). Viene chiesto, e il microfono aperto, solo mentre un
+  cavo prende il suono dal dispositivo su un modulo AUDIO; si chiude quando
+  quel cavo viene tolto. L'audio è elaborato in tempo reale sul dispositivo
   e non viene mai trasmesso. Puoi negare il permesso: l'app funziona in sola
   uscita.
 - **Bluetooth.** I permessi Bluetooth servono solo a collegare tastiere e

@@ -134,8 +134,10 @@
       <h2>Microphone</h2>
       <p>The RECORD_AUDIO permission is used exclusively to route live audio
       input into the synthesizer's AUDIO module (e.g. to process an external
-      instrument). Audio is processed in real time on the device and is never
-      transmitted. You can deny this permission; the app then runs
+      instrument). It is asked for, and the microphone is opened, only while a
+      cable takes sound from the device on an AUDIO module; it is closed when
+      that cable is removed. Audio is processed in real time on the device and
+      is never transmitted. You can deny this permission; the app then runs
       output-only.</p>
     </section>
 
