@@ -2413,7 +2413,7 @@ class MainActivity : NativeActivity() {
 		uiHandler.post {
 			var answered = false
 			val dialog = AlertDialog.Builder(this)
-				.apply { if (patches) setTitle(R.string.open_patch_title) else setTitle(kind.ifEmpty { dir }) }
+				.apply { if (patches) setTitle(R.string.open_patch_title) else setTitle(getString(R.string.open_file_title, kind.ifEmpty { dir })) }
 				.setItems(files.map { it.name }.toTypedArray()) { _, which ->
 					answered = true; nativeDialogString(files[which].absolutePath)
 				}
@@ -2423,8 +2423,17 @@ class MainActivity : NativeActivity() {
 				.setOnDismissListener { if (!answered) { answered = true; nativeDialogString(null) } }
 				.create()
 			dialog.show()
+			// Hold a file to send it elsewhere: to another app, or to a folder
+			// of the user's choosing -- the way a selection reaches a computer.
 			dialog.listView?.setOnItemLongClickListener { _, _, position, _ ->
-				sharePatch(files[position])
+				val file = files[position]
+				AlertDialog.Builder(this)
+					.setTitle(file.name)
+					.setItems(arrayOf(getString(R.string.file_share), getString(R.string.menu_save_to_device))) { _, which ->
+						dialog.dismiss()
+						if (which == 0) sharePatch(file) else savePatchToDevice(file)
+					}
+					.show()
 				true
 			}
 		}

@@ -82,6 +82,8 @@
 	<string name="toast_import_failed">Import fehlgeschlagen: %1$s</string>
 	<string name="toast_no_patches">Keine Patches in %1$s</string>
 	<string name="toast_no_files">Keine .%1$s-Dateien in %2$s</string>
+	<string name="file_share">Teilen…</string>
+	<string name="open_file_title">%1$s (gedrückt halten zum Teilen oder Speichern)</string>
 	<string name="toast_midi_connected">MIDI verbunden: %1$s</string>
 	<string name="toast_enable_bluetooth">Erst Bluetooth einschalten</string>
 	<string name="toast_ble_scan_failed">BLE-Suche fehlgeschlagen (%1$d)</string>

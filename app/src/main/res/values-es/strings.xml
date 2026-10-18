@@ -82,6 +82,8 @@
 	<string name="toast_import_failed">Error al importar: %1$s</string>
 	<string name="toast_no_patches">No hay parches en %1$s</string>
 	<string name="toast_no_files">No hay archivos .%1$s en %2$s</string>
+	<string name="file_share">Compartir…</string>
+	<string name="open_file_title">%1$s (mantén pulsado para compartir o guardar)</string>
 	<string name="toast_midi_connected">MIDI conectado: %1$s</string>
 	<string name="toast_enable_bluetooth">Activa antes el Bluetooth</string>
 	<string name="toast_ble_scan_failed">Error en la búsqueda BLE (%1$d)</string>

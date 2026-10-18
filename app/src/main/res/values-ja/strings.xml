@@ -82,6 +82,8 @@
 	<string name="toast_import_failed">読み込みに失敗しました: %1$s</string>
 	<string name="toast_no_patches">%1$s にパッチがありません</string>
 	<string name="toast_no_files">%2$s に .%1$s ファイルがありません</string>
+	<string name="file_share">共有…</string>
+	<string name="open_file_title">%1$s（長押しで共有または保存）</string>
 	<string name="toast_midi_connected">MIDIを接続しました: %1$s</string>
 	<string name="toast_enable_bluetooth">先にBluetoothを有効にしてください</string>
 	<string name="toast_ble_scan_failed">BLEスキャンに失敗しました (%1$d)</string>
