@@ -3,6 +3,7 @@ WHAT IS NEW IN THIS VERSION
 • Module packs update: a newer .rdmod replaces the installed one at the next start
 • A module pack opened from a file manager is installed
 • Module browser pictures redrawn
+• Hold a file in a file list to share it or save it to a folder, selections included
 
 FIXES
 • The microphone stayed on whenever the app played (Android showed it in use)

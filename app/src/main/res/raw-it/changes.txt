@@ -3,6 +3,7 @@ NOVITÀ DI QUESTA VERSIONE
 • I pacchetti di moduli si aggiornano: un .rdmod più nuovo sostituisce quello installato al riavvio
 • Un pacchetto di moduli aperto da un gestore di file viene installato
 • Immagini dell'elenco moduli rifatte
+• Tieni premuto un file in un elenco per condividerlo o salvarlo in una cartella, selezioni comprese
 
 CORREZIONI
 • Il microfono restava acceso finché l'app suonava (Android lo mostrava in uso)
