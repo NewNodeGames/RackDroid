@@ -1,7 +1,7 @@
 <meta charset="utf-8">
-<title>RackDroid 0.1.3: il suono, prima di tutto</title>
+<title>RackDroid 0.1.3.8: correzioni dalle vostre segnalazioni</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="RackDroid 0.1.3: il motore sceglie da solo quanti core usare, le parti indipendenti di una patch lavorano in parallelo, oscillatori come su desktop, tema chiaro e mouse.">
+<meta name="description" content="RackDroid 0.1.3.8: il microfono solo quando una patch lo usa, selezioni che si ricaricano, pacchetti di moduli che si aggiornano, prese disegnate giuste.">
 <style>
   @font-face {
     font-family: "Geomini";
@@ -481,122 +481,53 @@
       <a class="nav-link" href="index.it.html">Home</a>
       <a class="nav-link active" href="update.it.html">News</a>
       <a class="nav-lang" href="update.html">EN</a>
-      <a class="nav-cta" href="https://github.com/nowheel/RackDroid/releases/download/v0.1.3/rackdroid-0.1.3-sideload-arm64-v8a.apk" target="_blank" rel="noopener">Scarica l'APK</a>
+      <a class="nav-cta" href="https://github.com/nowheel/RackDroid/releases/download/v0.1.3.8/rackdroid-0.1.3.8-sideload-arm64-v8a.apk" target="_blank" rel="noopener">Scarica l'APK</a>
     </div>
   </div>
 </nav>
 <section class="ann">
   <div class="wrap">
     <div class="ann-head">
-      <span class="stamp">DISPONIBILE · 10 OTTOBRE 2026</span>
-      <h1>Il suono,<br>prima di tutto<span class="rd">.</span></h1>
+      <span class="stamp">DISPONIBILE · 18 OTTOBRE 2026</span>
+      <h1>Corretto<br>da voi<span class="rd">.</span></h1>
       <p class="ann-lede">
-        Due mesi di lavoro su una cosa sola: far suonare pulite le patch, su telefoni molto diversi fra loro. Più qualche comodità che mancava.
+        Un aggiornamento di correzioni, nato da quello che avete segnalato su GitHub e Reddit. Grazie: ognuna di queste viene da qualcuno che si è preso il tempo di scrivere.
       </p>
       <div class="ann-ctas">
-        <a class="btn btn-primary" href="https://github.com/nowheel/RackDroid/releases/download/v0.1.3/rackdroid-0.1.3-sideload-arm64-v8a.apk" target="_blank" rel="noopener">↓ Scarica la 0.1.3</a>
+        <a class="btn btn-primary" href="https://github.com/nowheel/RackDroid/releases/download/v0.1.3.8/rackdroid-0.1.3.8-sideload-arm64-v8a.apk" target="_blank" rel="noopener">↓ Scarica la 0.1.3</a>
         <a class="btn btn-ghost" href="rackdroid-manuale.html">Leggi il manuale</a>
       </div>
     </div>
-    <div class="clip" style="max-width:560px">
-      <div style="display:flex;gap:18px;justify-content:center">
-        <img src="assets/shots/013-rack-it.png" alt="" style="width:48%;border-radius:18px;border:1px solid var(--border-strong);box-shadow:0 26px 50px -22px rgba(0,0,0,0.8)">
-        <img src="assets/shots/013-cream-it.png" alt="" style="width:48%;border-radius:18px;border:1px solid var(--border-strong);box-shadow:0 26px 50px -22px rgba(0,0,0,0.8)">
-      </div>
-      <p class="cap">Il tema Violetto, e il nuovo tema Crema.</p>
-    </div>
-  </div>
-</section>
-<section class="scrolly">
-  <div class="wrap scrolly-grid">
-    <div class="steps">
-      <div class="step" data-shot="rack" data-hl="5,9.2,90,2.4">
-      <p class="kicker">Audio</p>
-      <h2>Il motore si regola da solo</h2>
-      <p>Apri una patch e RackDroid sceglie quanti core usare, per quel telefono e per quella patch. Poi se lo ricorda: la volta dopo parte subito.</p>
-      <p>Il menu dei thread non c'è più, perché non c'è niente da regolare a mano. La barra sottile sotto i menu ti dice quanto sta lavorando il motore.</p>
-    </div><div class="step" data-shot="rack">
-      <p class="kicker">In parallelo</p>
-      <h2>Più strumenti, più core</h2>
-      <p>I gruppi di moduli che non hanno cavi fra loro (più voci, più strumenti nello stesso rack) vengono calcolati ciascuno su un core diverso.</p>
-      <p>Un rack fatto di parti separate regge molto più di prima. E suona esattamente come suonava: cambia chi fa il lavoro, non il risultato.</p>
-    </div><div class="step" data-shot="heavy" data-hl="3,36.5,94,31">
-      <p class="kicker">Senza indovinare</p>
-      <h2>Ti dice quando è troppo</h2>
-      <p>Se una patch chiede più di quello che il telefono può dare, l'app lo dice e propone di dimezzare la frequenza di campionamento del motore.</p>
-      <p>Un tocco, e la patch che crepitava torna a suonare.</p>
-    </div><div class="step" data-shot="engine" data-hl="3,92.3,60,6.2">
-      <p class="kicker">Blocco audio</p>
-      <h2>Automatico, o come vuoi tu</h2>
-      <p>Dal menu Motore scegli la dimensione del blocco audio. Su Automatico ci pensa l'app; se ne fissi una, resta quella.</p>
-    </div><div class="step" data-shot="rack">
-      <p class="kicker">Suono</p>
-      <h2>Gli stessi fronti d'onda del desktop</h2>
-      <p>Onde quadre e a dente di sega hanno ora la stessa forma che hanno in VCV Rack sul computer. Sul telefono venivano calcolate in modo leggermente diverso.</p>
-      <p>Una patch fatta al computer si apre sul telefono, e viceversa, e suona allo stesso modo.</p>
-    </div><div class="step" data-shot="cream" data-hl="39,11.2,10.5,4.4">
-      <p class="kicker">Temi</p>
-      <h2>C'è anche la luce</h2>
-      <p>Accanto ai quattro temi scuri arriva Crema: pannelli bianco panna, rack chiaro, manopole scure. Si sceglie dal pulsante tavolozza.</p>
-    </div><div class="step" data-shot="file" data-hl="3,92.3,72,6.2">
-      <p class="kicker">File</p>
-      <h2>Salva dove vuoi</h2>
-      <p>File ▸ Salva sul dispositivo apre il selettore di sistema: la patch finisce nella cartella che scegli tu, pronta da copiare o condividere.</p>
-    </div><div class="step" data-shot="rack">
-      <p class="kicker">Mouse</p>
-      <h2>Con un mouse è un'altra cosa</h2>
-      <p>Tasto destro per il menu contestuale, rotella per scorrere, zoomare e girare le manopole, suggerimenti al passaggio del puntatore. Su tablet e Chromebook si lavora come al computer.</p>
-    </div>
-    </div>
-    <div class="stage">
-    <div class="phone">
-      <img data-shot="rack" src="assets/shots/013-rack-it.png" alt="">
-      <img data-shot="heavy" src="assets/shots/013-heavy-it.png" alt="">
-      <img data-shot="engine" src="assets/shots/013-engine-it.png" alt="">
-      <img data-shot="cream" src="assets/shots/013-cream-it.png" alt="">
-      <img data-shot="file" src="assets/shots/013-file-it.png" alt="">
-      <div class="hl"></div>
-    </div>
-  </div>
+    <p class="ann-lede" style="font-size:14.5px;margin-top:22px">Per avere la grafica corretta di Befaco e Bidoo, reinstalla i pacchetti di moduli dalla release: apri il file .rdmod con RackDroid e riavvia l'app.</p>
   </div>
 </section>
 <section id="changes" style="padding: 30px 0 10px">
   <div class="wrap">
     <div class="section-head">
       <p class="kicker">In breve</p>
-      <h2 class="section-title">Tutto quello che cambia nella 0.1.3</h2>
+      <h2 class="section-title">Tutto quello che cambia nella 0.1.3.8</h2>
       <p>Novità e correzioni, in elenco: così decidi tu se e quando aggiornare.</p>
     </div>
     <div class="changes-grid">
       <div class="why-card">
         <h3>Novità</h3>
         <ul class="changes-list">
-          <li>Il motore sceglie da solo quanti core usare e se lo ricorda per ogni patch</li>
-          <li>Le parti indipendenti di una patch lavorano in parallelo, ciascuna su un core</li>
-          <li>Avviso di patch troppo pesante, con la proposta di dimezzare la frequenza di campionamento</li>
-          <li>Motore ▸ Blocco audio: automatico oppure fissato da te</li>
-          <li>Carico del motore visibile nella barra degli strumenti</li>
-          <li>Onde quadre e a dente di sega con gli stessi fronti di VCV Rack su computer</li>
-          <li>Tema chiaro Crema</li>
-          <li>File ▸ Salva sul dispositivo</li>
-          <li>Mouse: tasto destro, rotella, suggerimenti al passaggio</li>
-          <li>Zoom con due dita più fluido e avvio più rapido</li>
+          <li>Il microfono viene usato solo quando una patch prende il suono dal telefono, e il permesso è chiesto in quel momento</li>
+          <li>I pacchetti di moduli si aggiornano: un .rdmod più nuovo sostituisce quello installato al riavvio dell'app</li>
+          <li>Un pacchetto di moduli aperto da un gestore di file viene installato</li>
+          <li>Tieni premuto un file in un elenco per condividerlo o salvarlo in una cartella: le selezioni arrivano al computer</li>
+          <li>Immagini dell'elenco moduli rifatte</li>
         </ul>
       </div>
       <div class="why-card">
         <h3>Correzioni</h3>
         <ul class="changes-list">
-          <li>Crepitio audio su diversi telefoni, anche con patch leggere</li>
-          <li>Crepitio prolungato dopo lo sblocco dello schermo o con la tendina delle notifiche: ora si chiude in circa un secondo</li>
-          <li>Una patch poteva andare persa se l'app veniva chiusa durante l'avvio</li>
-          <li>Lo scorrimento del rack poteva partire da solo dopo un trascinamento</li>
-          <li>Un menu poteva restare aperto e sembrare un blocco dell'app</li>
-          <li>Aprire una patch pesante poteva bloccare l'app per oltre un minuto</li>
-          <li>La registrazione partiva anche senza un'uscita audio e produceva un file vuoto</li>
-          <li>La lingua scelta da Aiuto ▸ Lingua non valeva per tutta l'app</li>
-          <li>Una patch grande si disegnava un pannello alla volta, ora in pochi secondi</li>
-          <li>Etichette poco leggibili e deformate sul tema chiaro</li>
-          <li>Diversi crash rari</li>
+          <li>Il microfono restava acceso finché l'app suonava</li>
+          <li>Le selezioni salvate non si potevano ricaricare: la finestra dei file aggiungeva .vcv a ogni nome</li>
+          <li>Prese e pulsanti disegnati come manopole sui moduli Befaco, Bidoo, Core e Fundamental</li>
+          <li>Scritte doppie sui moduli con grafica propria</li>
+          <li>Le ultime voci di un menu lungo non erano raggiungibili</li>
+          <li>Un crash se un pacchetto di moduli arrivava mentre l'app si avviava</li>
         </ul>
       </div>
     </div>
@@ -605,10 +536,10 @@
 <section class="ann">
   <div class="wrap ann-head">
     <div class="ann-ctas">
-      <a class="btn btn-primary" href="https://github.com/nowheel/RackDroid/releases/download/v0.1.3/rackdroid-0.1.3-sideload-arm64-v8a.apk" target="_blank" rel="noopener">↓ Scarica la 0.1.3</a>
+      <a class="btn btn-primary" href="https://github.com/nowheel/RackDroid/releases/download/v0.1.3.8/rackdroid-0.1.3.8-sideload-arm64-v8a.apk" target="_blank" rel="noopener">↓ Scarica la 0.1.3</a>
       <a class="btn btn-ghost" href="index.it.html">Torna al sito</a>
     </div>
-    <p class="ann-lede" style="font-size:14.5px;margin-top:18px"><a href="update-0.1.2.it.html" style="color:var(--amber-soft)">L'aggiornamento precedente: parcheggio cavi e selezione</a></p>
+    <p class="ann-lede" style="font-size:14.5px;margin-top:18px"><a href="update-0.1.3.it.html" style="color:var(--amber-soft)">L'aggiornamento precedente: il suono, prima di tutto</a></p>
   </div>
 </section>
 <footer>
@@ -625,48 +556,4 @@
   </div>
 </footer>
 
-<script>
-  // Ties each block of text to a screen and a highlight box. No library: an
-  // IntersectionObserver picks whichever step is crossing the middle of the
-  // viewport, and everything else is a class swap.
-  (function () {
-    var stage = document.querySelector('.phone');
-    if (!stage) return;
-    var shots = stage.querySelectorAll('img');
-    var ring = stage.querySelector('.hl');
-    var steps = document.querySelectorAll('.step');
-    if (!steps.length) return;
-
-    function show(step) {
-      var want = step.getAttribute('data-shot');
-      shots.forEach(function (img) {
-        img.classList.toggle('on', img.getAttribute('data-shot') === want);
-      });
-      steps.forEach(function (s) { s.classList.toggle('on', s === step); });
-
-      var box = step.getAttribute('data-hl');
-      if (!box) { ring.classList.remove('on'); return; }
-      var v = box.split(',');
-      if (v.length !== 4) { ring.classList.remove('on'); return; }
-      ring.style.left = v[0] + '%';
-      ring.style.top = v[1] + '%';
-      ring.style.width = v[2] + '%';
-      ring.style.height = v[3] + '%';
-      ring.classList.add('on');
-    }
-
-    var current = null;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting && e.target !== current) {
-          current = e.target;
-          show(e.target);
-        }
-      });
-    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
-
-    steps.forEach(function (s) { io.observe(s); });
-    show(steps[0]);
-  })();
-</script>
 
